@@ -4,7 +4,9 @@
   <%= form.submit "Get’em" %>
 <% end %>
 <br />
-<% if defined?(@artists) %>
+<% if defined?(@error) %>
+  There was an error accessing the Genius API.
+<% elsif defined?(@artists) %>
   <% if @artists.size > 1 %>
     There are multiple results for “<%= @query %>”. Choose which one you’d like to see songs for:<br />
     <% @artists.each do |artist| %>
