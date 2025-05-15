@@ -15,6 +15,7 @@ class GeniusController < ApplicationController
         uri.query = URI.encode_www_form({ q: @query })
         response = Net::HTTP.get(uri, api_headers)
         json_response = JSON.parse response
+        verify_response json_response
         artists = Set.new
         json_response['response']['hits'].each do |hit|
           hit['result']['primary_artists'].each do |artist|
@@ -45,6 +46,7 @@ class GeniusController < ApplicationController
                                       sort: :popularity })
     response = Net::HTTP.get(uri, api_headers)
     json_response = JSON.parse response
+    verify_response json_response
 
     @canonical_artist_name = json_response['response']['songs'].present? ?
                                get_artist_name(artist_id, json_response['response']['songs']) :
@@ -75,11 +77,18 @@ class GeniusController < ApplicationController
     uri = URI(API_URI)
     uri.path = "/artists/#{artist_id}"
     response = Net::HTTP.get(uri, api_headers)
-    JSON.parse(response)['response']['artist']['name']
+    json_response = JSON.parse response
+    verify_response json_response
+    json_response['response']['artist']['name']
   end
 
   def api_headers
     { Accept: 'application/json',
       Authorization: "Bearer #{ENV['GENIUS_API_TOKEN']}" }
+  end
+
+  def verify_response(json_response)
+    status_code = json_response['meta']['status']
+    raise "Genius API returned error status #{status_code}" unless status_code == 200
   end
 end
