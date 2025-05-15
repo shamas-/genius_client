@@ -23,6 +23,8 @@
     <%= title %><br />
   <% end %>
   <br />
+  Page <%= defined?(@previous_page) ? @previous_page + 1 : defined?(@next_page) ? @next_page - 1 : 1 %>
+  <br />
   <% if defined?(@previous_page) %>
     <%= link_to '< Previous', genius_index_path(artist_id: @artist_id, page: @previous_page) %>
   <% else %>

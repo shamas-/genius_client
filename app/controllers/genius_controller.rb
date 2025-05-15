@@ -37,7 +37,7 @@ class GeniusController < ApplicationController
 
   private
 
-  SONGS_PER_PAGE = 2
+  SONGS_PER_PAGE = 20
   def get_songs(artist_id, page = 1)
     uri = URI(API_URI)
     uri.path = "/artists/#{artist_id}/songs"
