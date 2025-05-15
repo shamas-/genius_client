@@ -1,8 +1,8 @@
-require 'net/http'
-require 'set'
+require "net/http"
+require "set"
 
 class GeniusController < ApplicationController
-  API_URI = 'https://api.genius.com'
+  API_URI = "https://api.genius.com"
 
   def index
     begin
@@ -11,15 +11,15 @@ class GeniusController < ApplicationController
       elsif params[:query].present?
         @query = params[:query]
         uri = URI(API_URI)
-        uri.path = '/search'
+        uri.path = "/search"
         uri.query = URI.encode_www_form({ q: @query })
         response = Net::HTTP.get(uri, api_headers)
         json_response = JSON.parse response
         verify_response json_response
         artists = Set.new
-        json_response['response']['hits'].each do |hit|
-          hit['result']['primary_artists'].each do |artist|
-            artists << [ artist['name'], artist['id'] ]
+        json_response["response"]["hits"].each do |hit|
+          hit["result"]["primary_artists"].each do |artist|
+            artists << [ artist["name"], artist["id"] ]
           end
         end
 
@@ -48,29 +48,29 @@ class GeniusController < ApplicationController
     json_response = JSON.parse response
     verify_response json_response
 
-    @canonical_artist_name = json_response['response']['songs'].present? ?
-                               get_artist_name(artist_id, json_response['response']['songs']) :
+    @canonical_artist_name = json_response["response"]["songs"].present? ?
+                               get_artist_name(artist_id, json_response["response"]["songs"]) :
                                nil
 
-    song_titles = json_response['response']['songs'].map { |song| song['title_with_featured'] }
+    song_titles = json_response["response"]["songs"].map { |song| song["title_with_featured"] }
     @song_titles = song_titles
 
     @artist_id = artist_id
     if page > 1
       @previous_page = page - 1
     end
-    if json_response['response']['next_page'].present? && @song_titles.size == SONGS_PER_PAGE
-      @next_page = json_response['response']['next_page']
+    if json_response["response"]["next_page"].present? && @song_titles.size == SONGS_PER_PAGE
+      @next_page = json_response["response"]["next_page"]
     end
   end
 
   def get_artist_name(artist_id, songs)
     songs.each do |song|
-      song['primary_artists'].each do |an_artist|
-        return an_artist['name'] if an_artist['id'] == artist_id
+      song["primary_artists"].each do |an_artist|
+        return an_artist["name"] if an_artist["id"] == artist_id
       end
-      song['featured_artists'].each do |featured_artist|
-        return featured_artist['name'] if featured_artist['id'] == artist_id
+      song["featured_artists"].each do |featured_artist|
+        return featured_artist["name"] if featured_artist["id"] == artist_id
       end
     end
 
@@ -79,16 +79,16 @@ class GeniusController < ApplicationController
     response = Net::HTTP.get(uri, api_headers)
     json_response = JSON.parse response
     verify_response json_response
-    json_response['response']['artist']['name']
+    json_response["response"]["artist"]["name"]
   end
 
   def api_headers
-    { Accept: 'application/json',
+    { Accept: "application/json",
       Authorization: "Bearer #{ENV['GENIUS_API_TOKEN']}" }
   end
 
   def verify_response(json_response)
-    status_code = json_response['meta']['status']
+    status_code = json_response["meta"]["status"]
     raise "Genius API returned error status #{status_code}" unless status_code == 200
   end
 end
