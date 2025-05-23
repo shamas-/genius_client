@@ -59,6 +59,10 @@ class GeniusController < ApplicationController
     if page > 1
       @previous_page = page - 1
     end
+    # The genius API has bugs with pagination:
+    # 1. The current page can contain less than the per_page number of songs and yet there will still be a number value for the "next_page" key, instead of indicating that there is no next page by using a null value. If you fetch the next page it will probably be empty, but it will still have a value for next_page even then. Usually it takes several empty pages before the value is null. Which leads into the second problem.
+    # 2. A heuristic implemented below is to overcome issue #1 is to check that the current page has per_page songs in it before making "Next >" navigable. (Assumption: if the number of results on the current page is less than per_page then the next page should be empty.) However, the API will still sometimes return fewer than per_page results even when the next page has content. So even though we ask for 20 results it returns 19. So then we make "Next >" NON-navigable but if you manually go to the next page it has 20 songs in it.
+    # So genius’ "next_page" key is unreliable. If we want to reliably paginate for our customers then you probably need to push through their bugs by fully enumerating all of their API results for a given artist first. That implementation would be a concern for a production app.
     if json_response["response"]["next_page"].present? && @song_titles.size == SONGS_PER_PAGE
       @next_page = json_response["response"]["next_page"]
     end
